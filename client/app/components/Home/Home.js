@@ -13,33 +13,29 @@ class Home extends Component {
 
     this.fetchFieldsNeeded = this.fetchFieldsNeeded.bind(this);
     this.onClickBeginSetup = this.onClickBeginSetup.bind(this);
+    this.onStartAccountSetup = this.onStartAccountSetup.bind(this);
   }
 
   componentWillMount() {
     this.fetchFieldsNeeded();
   }
 
-  onClickBeginSetup() {
-    console.log('is working')
-  }
-
-
   fetchFieldsNeeded() {
-    fetch('/api/stripe/account/get', 
-    {
-      method: 'POST',
-    headers: {
-      Accept: 'application/json',
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({}),
-   }
-  ).then(res => res.json())
+    fetch('/api/stripe/account/get',
+      {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({}),
+      }
+    ).then(res => res.json())
       .then(json => {
         const {
-          success, 
+          success,
           message,
-          setupBegan, 
+          setupBegan,
         } = json;
         if (success) {
           this.setState({
@@ -55,11 +51,50 @@ class Home extends Component {
       });
   }
 
-  
+  componentWillMount() {
+    this.fetchFieldsNeeded();
+    this.onStartAccountSetup();
+  }
+
+  onClickBeginSetup() {
+    this.onStartAccountSetup();
+  }
+
+  onStartAccountSetup() {
+    this.setState({
+      isLoadingFieldsNeeded: true,
+    })
+    fetch('/api/stripe/account/setup',
+      {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          countryCode: 'CA',
+        }),
+      }
+    ).then(res => res.json())
+      .then(json => {
+        const {
+          success,
+          message,
+        } = json;
+        if (success) {
+          this.fetchFieldsNeeded();
+        } else {
+          this.setState({
+            error: message,
+            isLoadingFieldsNeeded: true,
+          })
+        }
+      });
+  }
 
   render() {
     const {
-      isLoadingFieldsNeeded, 
+      isLoadingFieldsNeeded,
       setupBegan,
       error
     } = this.state;
